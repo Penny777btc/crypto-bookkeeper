@@ -1,0 +1,53 @@
+export const CONFIG = {
+    supportedCoins: [
+        { symbol: 'BTC', name: 'Bitcoin', id: 'bitcoin' },
+        { symbol: 'ETH', name: 'Ethereum', id: 'ethereum' },
+        { symbol: 'SOL', name: 'Solana', id: 'solana' },
+        { symbol: 'USDT', name: 'Tether', id: 'tether' },
+        { symbol: 'USDC', name: 'USD Coin', id: 'usd-coin' },
+        { symbol: 'BNB', name: 'BNB', id: 'binancecoin' },
+        { symbol: 'XRP', name: 'XRP', id: 'ripple' },
+        { symbol: 'ADA', name: 'Cardano', id: 'cardano' },
+        { symbol: 'AVAX', name: 'Avalanche', id: 'avalanche-2' },
+        { symbol: 'DOGE', name: 'Dogecoin', id: 'dogecoin' },
+    ],
+    chains: [
+        { id: 'ethereum', name: 'Ethereum', type: 'EVM' },
+        { id: 'bsc', name: 'BNB Smart Chain', type: 'EVM' },
+        { id: 'polygon', name: 'Polygon', type: 'EVM' },
+        { id: 'arbitrum', name: 'Arbitrum One', type: 'EVM' },
+        { id: 'optimism', name: 'Optimism', type: 'EVM' },
+        { id: 'solana', name: 'Solana', type: 'Solana' },
+        { id: 'sui', name: 'Sui', type: 'Sui' },
+    ],
+    transactionTypes: [
+        'Buy',
+        'Sell',
+        'Swap',
+        'Transfer',
+        'Deposit',
+        'Withdraw',
+        'Stake',
+        'Unstake',
+        'Claim',
+        'Approve',
+        'LP Add',
+        'LP Remove',
+    ],
+    platforms: [
+        { id: 'binance', name: 'Binance', type: 'CEX' },
+        { id: 'okx', name: 'OKX', type: 'CEX' },
+        { id: 'bybit', name: 'Bybit', type: 'CEX' },
+        { id: 'coinbase', name: 'Coinbase', type: 'CEX' },
+        { id: 'kraken', name: 'Kraken', type: 'CEX' },
+        { id: 'metamask', name: 'MetaMask', type: 'Wallet' },
+        { id: 'phantom', name: 'Phantom', type: 'Wallet' },
+        { id: 'suiwallet', name: 'Sui Wallet', type: 'Wallet' },
+        { id: 'ledger', name: 'Ledger', type: 'Wallet' },
+        { id: 'trezor', name: 'Trezor', type: 'Wallet' },
+    ],
+    fiatCurrencies: ['USD', 'CNY', 'NZD', 'EUR', 'GBP', 'JPY'],
+};
+
+// To add new coins, chains, or platforms, simply edit the arrays above.
+// Ensure 'id' matches the API identifier (e.g., CoinGecko ID for coins).
