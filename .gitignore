@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+dist/
+build/
+*.log
+
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+*.secret
+*.key
+
+# User data backups (可能包含API密钥)
+*-backup-*.json
+backup-*.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+
+# Testing
+coverage/
+
+# Server logs
+server.log
+frontend.log
+*.log
+
+# 测试文件（可能包含真实数据）
+test-*.csv
+bitcoin_news.json
+ethereum_news.json
+test-news.ts
+server/check-beth.js
+server/test-*.js

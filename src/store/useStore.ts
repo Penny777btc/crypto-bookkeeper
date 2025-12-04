@@ -40,6 +40,9 @@ export const useStore = create<AppState>()(
                     ),
                 })),
             setCexData: (data) => set({ cexData: data }),
+            cexExchangeOrder: [],
+            setCexExchangeOrder: (order) => set({ cexExchangeOrder: order }),
+
 
             // Wallets
             wallets: [],
@@ -53,6 +56,16 @@ export const useStore = create<AppState>()(
                         w.id === id ? { ...w, ...wallet } : w
                     ),
                 })),
+
+            // Tags
+            tags: [],
+            addTag: (tag) =>
+                set((state) => {
+                    if (state.tags.includes(tag)) return state;
+                    return { tags: [...state.tags, tag] };
+                }),
+            removeTag: (tag) =>
+                set((state) => ({ tags: state.tags.filter((t) => t !== tag) })),
 
             // Fiat Ledger
             fiatTransactions: [],
@@ -77,6 +90,18 @@ export const useStore = create<AppState>()(
                 set((state) => ({ transactions: [...state.transactions, tx] })),
             removeTransaction: (id) =>
                 set((state) => ({
+                    transactions: state.transactions.map((t) =>
+                        t.id === id ? { ...t, isDeleted: true } : t
+                    ),
+                })),
+            restoreTransaction: (id) =>
+                set((state) => ({
+                    transactions: state.transactions.map((t) =>
+                        t.id === id ? { ...t, isDeleted: false } : t
+                    ),
+                })),
+            permanentlyDeleteTransaction: (id) =>
+                set((state) => ({
                     transactions: state.transactions.filter((t) => t.id !== id),
                 })),
             updateTransaction: (id, tx) =>
@@ -85,6 +110,107 @@ export const useStore = create<AppState>()(
                         t.id === id ? { ...t, ...tx } : t
                     ),
                 })),
+
+            // UI Persistence
+            activeTab: 'monitor',
+            setActiveTab: (tab) => set({ activeTab: tab }),
+            walletData: null,
+            setWalletData: (data) => set((state) => ({
+                walletData: typeof data === 'function' ? data(state.walletData) : data
+            })),
+            hideAmounts: false,
+            toggleHideAmounts: () => set((state) => ({ hideAmounts: !state.hideAmounts })),
+
+            // AI Config
+            aiConfig: {
+                apiKey: '',
+                provider: 'openai',
+                baseUrl: '',
+                model: ''
+            },
+            setAiConfig: (config) => set((state) => ({ aiConfig: { ...state.aiConfig, ...config } })),
+
+            // Earn Products
+            earnProducts: [],
+            setEarnProducts: (products) => set({ earnProducts: products }),
+            showHeldOnly: false,
+            toggleShowHeldOnly: () => set((state) => ({ showHeldOnly: !state.showHeldOnly })),
+
+            // Manual Assets
+            manualAssets: [],
+            addManualAsset: (asset) => set((state) => ({
+                manualAssets: [
+                    ...state.manualAssets,
+                    {
+                        ...asset,
+                        id: `manual-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                        createdAt: Date.now(),
+                        updatedAt: Date.now(),
+                    }
+                ]
+            })),
+            updateManualAsset: (id, updates) => set((state) => ({
+                manualAssets: state.manualAssets.map(asset =>
+                    asset.id === id
+                        ? { ...asset, ...updates, updatedAt: Date.now() }
+                        : asset
+                )
+            })),
+            removeManualAsset: (id) => set((state) => ({
+                manualAssets: state.manualAssets.filter(asset => asset.id !== id)
+            })),
+
+
+            // Data Backup & Restore
+            exportData: () => {
+                const state = useStore.getState();
+                const backup = {
+                    version: '1.0',
+                    exportDate: new Date().toISOString(),
+                    data: {
+                        cexConfigs: state.cexConfigs,
+                        transactions: state.transactions,
+                        fiatTransactions: state.fiatTransactions,
+                        monitoredCoins: state.monitoredCoins,
+                        wallets: state.wallets,
+                        tags: state.tags,
+                        aiConfig: state.aiConfig,
+                        cexExchangeOrder: state.cexExchangeOrder,
+                    }
+                };
+                const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `crypto-bookkeeper-backup-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            },
+
+            importData: (jsonData: string) => {
+                try {
+                    const backup = JSON.parse(jsonData);
+                    if (!backup.version || !backup.data) {
+                        throw new Error('Invalid backup format');
+                    }
+                    set({
+                        cexConfigs: backup.data.cexConfigs || [],
+                        transactions: backup.data.transactions || [],
+                        fiatTransactions: backup.data.fiatTransactions || [],
+                        monitoredCoins: backup.data.monitoredCoins || [],
+                        wallets: backup.data.wallets || [],
+                        tags: backup.data.tags || [],
+                        aiConfig: backup.data.aiConfig || { apiKey: '', provider: 'openai', baseUrl: '', model: '' },
+                        cexExchangeOrder: backup.data.cexExchangeOrder || [],
+                    });
+                    return true;
+                } catch (error) {
+                    console.error('Import failed:', error);
+                    return false;
+                }
+            },
         }),
         {
             name: 'crypto-bookkeeper-storage',

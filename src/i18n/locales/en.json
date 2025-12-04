@@ -1,0 +1,84 @@
+{
+    "common": {
+        "loading": "Loading...",
+        "refresh": "Refresh",
+        "settings": "Settings",
+        "language": "Language",
+        "save": "Save",
+        "cancel": "Cancel",
+        "confirm": "Confirm",
+        "actions": "Actions",
+        "add": "Add",
+        "update": "Update",
+        "select": "Select...",
+        "other": "Other",
+        "api": "API",
+        "manual": "Manual",
+        "total": "Total",
+        "assets_count": "assets"
+    },
+    "nav": {
+        "dashboard": "Dashboard",
+        "transactions": "Transactions",
+        "cex_assets": "CEX Assets",
+        "wallets": "Wallets",
+        "earn_products": "Earn",
+        "manual_assets": "Manual",
+        "analysis": "Analysis"
+    },
+    "cex": {
+        "page_title": "CEX Assets",
+        "total_balance": "Total CEX Balance",
+        "api_balance": "API",
+        "manual_balance": "Manual",
+        "sort_by_value": "Sort by Value",
+        "dashboard_tab": "Dashboard",
+        "settings_tab": "Settings",
+        "analysis_tab": "Analysis",
+        "earn_tab": "Earn",
+        "refresh_data_real": "Refresh Data (Real)",
+        "load_data_real": "Load Data (Real)",
+        "switch_to_cny": "Switch to CNY",
+        "switch_to_usd": "Switch to USD"
+    },
+    "earn": {
+        "title": "Earn Products",
+        "load_products": "Load Products",
+        "refresh_data": "Refresh Data",
+        "filter_held": "Show Only Held Assets",
+        "no_products": "Click button above to load earn products",
+        "table": {
+            "asset": "Asset",
+            "type": "Type",
+            "apr": "APR",
+            "daily_rate": "Daily Rate",
+            "can_purchase": "Available",
+            "min_amount": "Min Amount",
+            "action": "Action"
+        },
+        "action": {
+            "subscribe": "Subscribe"
+        },
+        "type": {
+            "flexible": "Flexible",
+            "fixed": "Fixed"
+        }
+    },
+    "manual_assets": {
+        "title": "Manual Assets",
+        "add_new": "Add Asset",
+        "exchange": "Exchange",
+        "symbol": "Symbol",
+        "amount": "Amount",
+        "price": "Price",
+        "value": "Value",
+        "note": "Note (Optional)",
+        "note_placeholder": "e.g., Locked Staking",
+        "total_value": "Total Value",
+        "total_assets": "Total Manual Assets",
+        "empty": "No manual assets added yet.",
+        "empty_hint": "Click \"Add Asset\" to record assets not captured by API.",
+        "confirm_delete": "Are you sure you want to delete this asset?",
+        "assets_count": "assets"
+    }
+}

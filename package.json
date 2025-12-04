@@ -5,18 +5,29 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "backend": "node server/index.js",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "vite"
   },
   "dependencies": {
+    "@hello-pangea/dnd": "^18.0.1",
+    "@tailwindcss/typography": "^0.5.19",
     "clsx": "^2.1.0",
     "date-fns": "^3.3.1",
+    "i18next": "^25.7.1",
+    "i18next-browser-languagedetector": "^8.2.0",
     "lucide-react": "^0.344.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-i18next": "^16.3.5",
+    "react-markdown": "^10.1.0",
+    "react-ts-tradingview-widgets": "^1.2.8",
+    "recharts": "^3.5.1",
     "tailwind-merge": "^2.2.1",
     "uuid": "^9.0.1",
+    "xlsx": "^0.18.5",
     "zustand": "^4.5.1"
   },
   "devDependencies": {
@@ -34,6 +45,6 @@
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3",
-    "vite": "^5.1.4"
+    "vite": "^7.2.4"
   }
 }

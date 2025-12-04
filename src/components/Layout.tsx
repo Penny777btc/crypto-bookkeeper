@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { LayoutDashboard, LineChart, Wallet, Banknote, History, Settings, Menu } from 'lucide-react';
 import { cn } from '../utils/utils';
+import { SettingsDialog } from './settings/SettingsDialog';
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from './common/LanguageSwitcher';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -10,13 +13,15 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [settingsOpen, setSettingsOpen] = useState(false);
+    const { t } = useTranslation();
 
     const menuItems = [
-        { id: 'monitor', label: 'Price Monitor', icon: LineChart },
-        { id: 'cex', label: 'CEX Assets', icon: LayoutDashboard },
-        { id: 'onchain', label: 'On-chain Wallets', icon: Wallet },
-        { id: 'fiat', label: 'Fiat/USDT Ledger', icon: Banknote },
-        { id: 'transactions', label: 'Transactions', icon: History },
+        { id: 'monitor', label: t('nav.dashboard', 'Price Monitor'), icon: LineChart },
+        { id: 'cex', label: t('nav.cex_assets', 'CEX Assets'), icon: LayoutDashboard },
+        { id: 'onchain', label: t('nav.wallets', 'On-chain Wallets'), icon: Wallet },
+        { id: 'fiat', label: t('nav.transactions', 'Fiat/USDT Ledger'), icon: Banknote }, // Note: Mapping might need adjustment based on en.json
+        { id: 'transactions', label: t('nav.transactions', 'Transactions'), icon: History },
     ];
 
     return (
@@ -59,10 +64,27 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
                             {sidebarOpen && <span>{item.label}</span>}
                         </button>
                     ))}
+
+                    <div className="my-2 border-t border-border/50" />
+
+                    <button
+                        onClick={() => setSettingsOpen(true)}
+                        className={cn(
+                            "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground"
+                        )}
+                    >
+                        <Settings size={20} />
+                        {sidebarOpen && <span>{t('common.settings', 'Settings')}</span>}
+                    </button>
                 </nav>
 
-                <div className="p-4 border-t border-border">
-                    {sidebarOpen && <div className="text-xs text-muted-foreground">v1.0.0 Local</div>}
+                <div className="p-4 border-t border-border space-y-4">
+                    {sidebarOpen && (
+                        <div className="w-full flex justify-center">
+                            <LanguageSwitcher />
+                        </div>
+                    )}
+                    {sidebarOpen && <div className="text-xs text-muted-foreground text-center">v1.0.0 Local</div>}
                 </div>
             </aside>
 
@@ -72,6 +94,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
                     {children}
                 </div>
             </main>
+
+            <SettingsDialog
+                isOpen={settingsOpen}
+                onClose={() => setSettingsOpen(false)}
+            />
         </div>
     );
 };

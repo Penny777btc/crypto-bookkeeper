@@ -1,308 +1,184 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { CONFIG } from '../config/config';
-import { Card, CardContent, CardHeader, CardTitle, Button, Input, Select } from '../components/ui';
-import { formatCurrency } from '../utils/utils';
-import { Trash2, Plus, Filter, ArrowRightLeft } from 'lucide-react';
-import { v4 as uuidv4 } from 'uuid';
-import { format } from 'date-fns';
+import { TransactionList } from '../components/transactions/TransactionList';
+import { TransactionForm } from '../components/transactions/TransactionForm';
+import { Transaction } from '../types';
 
 export const Transactions: React.FC = () => {
-    const { transactions, addTransaction, removeTransaction } = useStore();
+    const { transactions, addTransaction, removeTransaction, updateTransaction, permanentlyDeleteTransaction } = useStore();
+    const [view, setView] = useState<'list' | 'form'>('list');
+    const [editingTx, setEditingTx] = useState<Transaction | null>(null);
+    const [relatedTx, setRelatedTx] = useState<Transaction | null>(null);
 
-    // Filters
-    const [filterCoin, setFilterCoin] = useState('');
-    const [filterPlatform, setFilterPlatform] = useState('');
-    const [filterType, setFilterType] = useState('');
+    const handleAdd = () => {
+        setEditingTx(null);
+        setRelatedTx(null);
+        setView('form');
+    };
 
-    // New Transaction State
-    const [newTx, setNewTx] = useState({
-        date: new Date().toISOString().slice(0, 16),
-        type: 'Buy',
-        platform: '',
-        pair: '',
-        amount: '',
-        price: '',
-        fee: '',
-        notes: ''
-    });
+    const handleEdit = (tx: Transaction) => {
+        console.log('Editing transaction:', tx);
+        setEditingTx(tx);
+        if (tx.relatedTransactionId) {
+            const related = transactions.find(t => t.id === tx.relatedTransactionId);
+            console.log('Found related transaction:', related);
+            setRelatedTx(related || null);
+        } else {
+            // Check if this is the sell side of a pair (less common entry point but possible)
+            const parent = transactions.find(t => t.relatedTransactionId === tx.id);
+            if (parent) {
+                console.log('Found parent transaction:', parent);
+                // If editing the sell side, we should probably switch to editing the buy side as primary
+                setEditingTx(parent);
+                setRelatedTx(tx);
+            } else {
+                console.log('No related transaction found');
+                setRelatedTx(null);
+            }
+        }
+        setView('form');
+    };
 
-    const handleAddTx = () => {
-        if (newTx.pair && newTx.amount && newTx.price && newTx.platform) {
-            addTransaction({
-                id: uuidv4(),
-                date: new Date(newTx.date).toISOString(),
-                type: newTx.type,
-                platform: newTx.platform,
-                pair: newTx.pair.toUpperCase(),
-                amount: parseFloat(newTx.amount),
-                price: parseFloat(newTx.price),
-                fee: parseFloat(newTx.fee) || 0,
-                notes: newTx.notes
-            });
-            setNewTx({
-                ...newTx,
-                pair: '',
-                amount: '',
-                price: '',
-                fee: '',
-                notes: ''
-            });
+    const handleDelete = (id: string) => {
+        if (window.confirm('Are you sure you want to delete this transaction pair?')) {
+            const tx = transactions.find(t => t.id === id);
+            removeTransaction(id);
+            if (tx?.relatedTransactionId) {
+                console.log('Deleting related transaction:', tx.relatedTransactionId);
+                removeTransaction(tx.relatedTransactionId);
+            }
+            // Also check if this was a sell side and we deleted it, should we delete the parent buy?
+            // In our new list logic, we pass the Buy ID for pairs, so the above covers it.
+            // But for safety, if we somehow deleted a sell that had a parent:
+            const parent = transactions.find(t => t.relatedTransactionId === id);
+            if (parent) {
+                console.log('Deleting parent transaction:', parent.id);
+                removeTransaction(parent.id);
+            }
         }
     };
 
-    const filteredTransactions = useMemo(() => {
-        return transactions
-            .filter(t => {
-                if (filterCoin && !t.pair.includes(filterCoin.toUpperCase())) return false;
-                if (filterPlatform && t.platform !== filterPlatform) return false;
-                if (filterType && t.type !== filterType) return false;
-                return true;
-            })
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }, [transactions, filterCoin, filterPlatform, filterType]);
-
-    const stats = useMemo(() => {
-        return filteredTransactions.reduce((acc, curr) => {
-            if (curr.type === 'Buy') {
-                acc.buyVolume += curr.amount * curr.price;
-            } else if (curr.type === 'Sell') {
-                acc.sellVolume += curr.amount * curr.price;
+    const handleSave = (txs: Transaction[]) => {
+        console.log('Saving transactions:', txs);
+        txs.forEach(tx => {
+            const existing = transactions.find(t => t.id === tx.id);
+            if (existing) {
+                console.log('Updating existing:', tx);
+                updateTransaction(tx.id, tx);
+            } else {
+                console.log('Adding new:', tx);
+                addTransaction(tx);
             }
-            acc.totalFees += curr.fee;
-            return acc;
-        }, { buyVolume: 0, sellVolume: 0, totalFees: 0 });
-    }, [filteredTransactions]);
+        });
+        setView('list');
+        setEditingTx(null);
+        setRelatedTx(null);
+    };
+
+    const handleCancel = () => {
+        setView('list');
+        setEditingTx(null);
+        setRelatedTx(null);
+    };
+
+    const handleImport = (txs: Transaction[]) => {
+        // Group by pair for auto-pairing
+        const buyMap = new Map<string, Transaction[]>();
+        const sellMap = new Map<string, Transaction[]>();
+        const standalone: Transaction[] = [];
+
+        // Separate Buy and Sell transactions by pair
+        txs.forEach(tx => {
+            if (tx.type === 'Buy') {
+                if (!buyMap.has(tx.pair)) buyMap.set(tx.pair, []);
+                buyMap.get(tx.pair)!.push(tx);
+            } else if (tx.type === 'Sell') {
+                if (!sellMap.has(tx.pair)) sellMap.set(tx.pair, []);
+                sellMap.get(tx.pair)!.push(tx);
+            } else {
+                standalone.push(tx);
+            }
+        });
+
+        // Auto-pair Buy and Sell for the same pair
+        const paired: Transaction[] = [];
+
+        buyMap.forEach((buys, pair) => {
+            const sells = sellMap.get(pair) || [];
+
+            // Sort by date to match chronologically
+            buys.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+            sells.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+            // Pair each buy with its corresponding sell
+            for (let i = 0; i < Math.max(buys.length, sells.length); i++) {
+                const buy = buys[i];
+                const sell = sells[i];
+
+                if (buy && sell) {
+                    // Calculate PnL and APR
+                    const buyValue = buy.amount * buy.price;
+                    const sellValue = sell.amount * sell.price;
+                    const pnl = sellValue - buyValue - buy.fee - sell.fee;
+
+                    const buyDate = new Date(buy.date);
+                    const sellDate = new Date(sell.date);
+                    const daysHeld = (sellDate.getTime() - buyDate.getTime()) / (1000 * 60 * 60 * 24);
+                    const apr = daysHeld > 0 ? (pnl / buyValue) * (365 / daysHeld) * 100 : 0;
+
+                    // Link transactions
+                    buy.relatedTransactionId = sell.id;
+                    sell.relatedTransactionId = buy.id;
+                    sell.pnl = pnl;
+                    sell.apr = apr;
+
+                    paired.push(buy, sell);
+                } else if (buy) {
+                    // Only buy, no matching sell
+                    paired.push(buy);
+                } else if (sell) {
+                    // Only sell, no matching buy
+                    paired.push(sell);
+                }
+            }
+
+            // Remove processed sells from map
+            sellMap.delete(pair);
+        });
+
+        // Add any remaining sells (no matching buys)
+        sellMap.forEach(sells => {
+            paired.push(...sells);
+        });
+
+        // Add all paired + standalone transactions
+        [...paired, ...standalone].forEach(tx => addTransaction(tx));
+    };
+
+    const handleCleanup = (id: string) => {
+        console.log('Cleaning up invalid transaction:', id);
+        removeTransaction(id);
+    };
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h2 className="text-3xl font-bold tracking-tight">Transaction History</h2>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card>
-                    <CardContent className="pt-6">
-                        <div className="text-sm font-medium text-muted-foreground">Total Buy Volume</div>
-                        <div className="text-2xl font-bold">{formatCurrency(stats.buyVolume)}</div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="pt-6">
-                        <div className="text-sm font-medium text-muted-foreground">Total Sell Volume</div>
-                        <div className="text-2xl font-bold">{formatCurrency(stats.sellVolume)}</div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="pt-6">
-                        <div className="text-sm font-medium text-muted-foreground">Total Fees Paid</div>
-                        <div className="text-2xl font-bold text-red-500">{formatCurrency(stats.totalFees)}</div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Add New Transaction */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Record Transaction</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-8 gap-4 items-end">
-                        <div className="md:col-span-1 lg:col-span-1">
-                            <label className="text-xs font-medium mb-1 block">Date</label>
-                            <Input
-                                type="datetime-local"
-                                className="text-xs px-2"
-                                value={newTx.date}
-                                onChange={(e) => setNewTx({ ...newTx, date: e.target.value })}
-                            />
-                        </div>
-                        <div className="md:col-span-1 lg:col-span-1">
-                            <label className="text-xs font-medium mb-1 block">Type</label>
-                            <Select
-                                className="text-xs"
-                                value={newTx.type}
-                                onChange={(e) => setNewTx({ ...newTx, type: e.target.value })}
-                            >
-                                {CONFIG.transactionTypes.map(t => <option key={t} value={t}>{t}</option>)}
-                            </Select>
-                        </div>
-                        <div className="md:col-span-1 lg:col-span-1">
-                            <label className="text-xs font-medium mb-1 block">Platform</label>
-                            <Select
-                                className="text-xs"
-                                value={newTx.platform}
-                                onChange={(e) => setNewTx({ ...newTx, platform: e.target.value })}
-                            >
-                                <option value="">Select</option>
-                                {CONFIG.platforms.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                            </Select>
-                        </div>
-                        <div className="md:col-span-1 lg:col-span-1">
-                            <label className="text-xs font-medium mb-1 block">Pair (e.g. BTC/USDT)</label>
-                            <Input
-                                className="text-xs"
-                                placeholder="BTC/USDT"
-                                value={newTx.pair}
-                                onChange={(e) => setNewTx({ ...newTx, pair: e.target.value })}
-                            />
-                        </div>
-                        <div className="md:col-span-1 lg:col-span-1">
-                            <label className="text-xs font-medium mb-1 block">Amount</label>
-                            <Input
-                                type="number"
-                                className="text-xs"
-                                placeholder="0.00"
-                                value={newTx.amount}
-                                onChange={(e) => setNewTx({ ...newTx, amount: e.target.value })}
-                            />
-                        </div>
-                        <div className="md:col-span-1 lg:col-span-1">
-                            <label className="text-xs font-medium mb-1 block">Price (USD)</label>
-                            <Input
-                                type="number"
-                                className="text-xs"
-                                placeholder="0.00"
-                                value={newTx.price}
-                                onChange={(e) => setNewTx({ ...newTx, price: e.target.value })}
-                            />
-                        </div>
-                        <div className="md:col-span-1 lg:col-span-1">
-                            <label className="text-xs font-medium mb-1 block">Fee (USD)</label>
-                            <Input
-                                type="number"
-                                className="text-xs"
-                                placeholder="0.00"
-                                value={newTx.fee}
-                                onChange={(e) => setNewTx({ ...newTx, fee: e.target.value })}
-                            />
-                        </div>
-                        <div className="md:col-span-1 lg:col-span-1">
-                            <Button className="w-full text-xs" onClick={handleAddTx} disabled={!newTx.pair || !newTx.amount}>
-                                <Plus className="mr-1 h-3 w-3" /> Add
-                            </Button>
-                        </div>
-                    </div>
-                    <div className="mt-2">
-                        <Input
-                            className="text-xs"
-                            placeholder="Optional notes (strategy, intent, etc.)..."
-                            value={newTx.notes}
-                            onChange={(e) => setNewTx({ ...newTx, notes: e.target.value })}
-                        />
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Transaction List */}
-            <Card>
-                <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                    <CardTitle>Transactions</CardTitle>
-                    <div className="flex flex-wrap items-center gap-2">
-                        <div className="flex items-center gap-2">
-                            <Filter className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm font-medium">Filters:</span>
-                        </div>
-                        <Input
-                            placeholder="Filter Coin (e.g. BTC)"
-                            className="w-32 h-8 text-xs"
-                            value={filterCoin}
-                            onChange={(e) => setFilterCoin(e.target.value)}
-                        />
-                        <Select
-                            className="w-32 h-8 text-xs"
-                            value={filterPlatform}
-                            onChange={(e) => setFilterPlatform(e.target.value)}
-                        >
-                            <option value="">All Platforms</option>
-                            {CONFIG.platforms.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                        </Select>
-                        <Select
-                            className="w-32 h-8 text-xs"
-                            value={filterType}
-                            onChange={(e) => setFilterType(e.target.value)}
-                        >
-                            <option value="">All Types</option>
-                            {CONFIG.transactionTypes.map(t => <option key={t} value={t}>{t}</option>)}
-                        </Select>
-                        {(filterCoin || filterPlatform || filterType) && (
-                            <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => {
-                                setFilterCoin('');
-                                setFilterPlatform('');
-                                setFilterType('');
-                            }}>Clear</Button>
-                        )}
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <div className="rounded-md border overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-muted/50 text-muted-foreground">
-                                <tr>
-                                    <th className="p-3 font-medium whitespace-nowrap">Date</th>
-                                    <th className="p-3 font-medium">Type</th>
-                                    <th className="p-3 font-medium">Platform</th>
-                                    <th className="p-3 font-medium">Pair</th>
-                                    <th className="p-3 font-medium text-right">Amount</th>
-                                    <th className="p-3 font-medium text-right">Price</th>
-                                    <th className="p-3 font-medium text-right">Total</th>
-                                    <th className="p-3 font-medium text-right">Fee</th>
-                                    <th className="p-3 font-medium">Notes</th>
-                                    <th className="p-3 font-medium text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredTransactions.map(tx => (
-                                    <tr key={tx.id} className="border-t hover:bg-muted/50 transition-colors">
-                                        <td className="p-3 whitespace-nowrap text-xs text-muted-foreground">
-                                            {format(new Date(tx.date), 'yyyy-MM-dd HH:mm')}
-                                        </td>
-                                        <td className="p-3">
-                                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${tx.type === 'Buy' ? 'bg-green-100 text-green-800' :
-                                                    tx.type === 'Sell' ? 'bg-red-100 text-red-800' :
-                                                        'bg-secondary text-secondary-foreground'
-                                                }`}>
-                                                {tx.type}
-                                            </span>
-                                        </td>
-                                        <td className="p-3 text-xs">
-                                            {CONFIG.platforms.find(p => p.id === tx.platform)?.name || tx.platform}
-                                        </td>
-                                        <td className="p-3 font-medium">{tx.pair}</td>
-                                        <td className="p-3 text-right font-mono text-xs">{tx.amount}</td>
-                                        <td className="p-3 text-right font-mono text-xs">{formatCurrency(tx.price)}</td>
-                                        <td className="p-3 text-right font-mono font-medium text-xs">
-                                            {formatCurrency(tx.amount * tx.price)}
-                                        </td>
-                                        <td className="p-3 text-right font-mono text-xs text-muted-foreground">
-                                            {tx.fee > 0 ? formatCurrency(tx.fee) : '-'}
-                                        </td>
-                                        <td className="p-3 text-xs text-muted-foreground max-w-[150px] truncate">{tx.notes || '-'}</td>
-                                        <td className="p-3 text-right">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                                                onClick={() => removeTransaction(tx.id)}
-                                            >
-                                                <Trash2 className="h-3 w-3" />
-                                            </Button>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {filteredTransactions.length === 0 && (
-                                    <tr>
-                                        <td colSpan={10} className="p-8 text-center text-muted-foreground">
-                                            No transactions found.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </CardContent>
-            </Card>
+        <div className="container mx-auto py-6 max-w-7xl">
+            {view === 'list' ? (
+                <TransactionList
+                    transactions={transactions}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onAdd={handleAdd}
+                    onImport={handleImport}
+                />
+            ) : (
+                <TransactionForm
+                    initialData={editingTx}
+                    relatedData={relatedTx}
+                    onSave={handleSave}
+                    onDelete={handleCleanup}
+                    onCancel={handleCancel}
+                />
+            )}
         </div>
     );
 };

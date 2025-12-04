@@ -1,0 +1,84 @@
+{
+    "common": {
+        "loading": "加载中...",
+        "refresh": "刷新",
+        "settings": "设置",
+        "language": "语言",
+        "save": "保存",
+        "cancel": "取消",
+        "confirm": "确认",
+        "actions": "操作",
+        "add": "添加",
+        "update": "更新",
+        "select": "选择...",
+        "other": "其他",
+        "api": "API",
+        "manual": "手动",
+        "total": "总计",
+        "assets_count": "个资产"
+    },
+    "nav": {
+        "dashboard": "仪表盘",
+        "transactions": "交易记录",
+        "cex_assets": "CEX 资产",
+        "wallets": "链上钱包",
+        "earn_products": "理财",
+        "manual_assets": "手动",
+        "analysis": "分析"
+    },
+    "cex": {
+        "page_title": "CEX 资产",
+        "total_balance": "CEX 资产总额",
+        "api_balance": "API",
+        "manual_balance": "手动",
+        "sort_by_value": "按价值排序",
+        "dashboard_tab": "仪表盘",
+        "settings_tab": "配置",
+        "analysis_tab": "分析",
+        "earn_tab": "理财",
+        "refresh_data_real": "刷新数据（真实）",
+        "load_data_real": "加载数据（真实）",
+        "switch_to_cny": "切换到人民币",
+        "switch_to_usd": "切换到美元"
+    },
+    "earn": {
+        "title": "理财产品",
+        "load_products": "加载理财产品",
+        "refresh_data": "刷新数据",
+        "filter_held": "仅显示持有资产",
+        "no_products": "点击上方按钮加载理财产品列表",
+        "table": {
+            "asset": "币种",
+            "type": "类型",
+            "apr": "年化收益率",
+            "daily_rate": "日利率",
+            "can_purchase": "可申购",
+            "min_amount": "最小金额",
+            "action": "操作"
+        },
+        "action": {
+            "subscribe": "申购"
+        },
+        "type": {
+            "flexible": "活期",
+            "fixed": "定期"
+        }
+    },
+    "manual_assets": {
+        "title": "手动资产",
+        "add_new": "添加资产",
+        "exchange": "交易所",
+        "symbol": "币种",
+        "amount": "数量",
+        "price": "价格",
+        "value": "价值",
+        "note": "备注（可选）",
+        "note_placeholder": "例如：锁仓质押",
+        "total_value": "总价值",
+        "total_assets": "手动资产总数",
+        "empty": "还没有添加手动资产。",
+        "empty_hint": "点击\"添加资产\"来记录 API 无法抓取的资产。",
+        "confirm_delete": "确定要删除这个资产吗？",
+        "assets_count": "个资产"
+    }
+}
