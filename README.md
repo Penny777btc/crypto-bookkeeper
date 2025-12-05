@@ -48,6 +48,34 @@
 
 ---
 
+## 📸 应用截图
+
+### 主界面
+> 💡 **提示**：如果您已经运行了应用，可以截图后添加到 `screenshots/` 文件夹中
+
+![Dashboard](screenshots/dashboard.png)
+*CEX 资产总览 - 支持多交易所聚合展示*
+
+### 交易记录管理
+![Transactions](screenshots/transactions.png)
+*详细的交易历史和自动 PnL 计算*
+
+### AI 投资分析
+![AI Analysis](screenshots/ai-analysis.png)
+*智能投资组合分析和代币洞察*
+
+### 手动资产管理
+![Manual Assets](screenshots/manual-assets.png)
+*灵活记录无法通过 API 获取的资产*
+
+> 📝 **如何添加截图**：
+> 1. 运行应用并截图（Cmd + Shift + 4）
+> 2. 创建 `screenshots/` 文件夹
+> 3. 将截图重命名并放入文件夹
+> 4. 截图会自动显示在 README 中
+
+---
+
 ## 🚀 快速开始
 
 ### 环境要求
@@ -56,7 +84,23 @@
 - **npm** >= 9.0
 - 现代浏览器（Chrome、Firefox、Safari、Edge）
 
-### 安装步骤
+### 一键安装（推荐）
+
+```bash
+# 克隆仓库
+git clone https://github.com/Penny777btc/crypto-bookkeeper.git
+cd crypto-bookkeeper
+
+# 运行安装脚本
+./install.sh
+```
+
+安装脚本会自动：
+- ✅ 检查 Node.js 环境
+- ✅ 安装前端和后端依赖
+- ✅ 创建配置文件
+
+### 手动安装
 
 #### 1. 克隆仓库
 
@@ -95,6 +139,16 @@ node index.js
 ---
 
 ## 📚 使用指南
+
+### 🔰 首次使用
+
+1. **访问应用**：打开 http://localhost:5173
+2. **可选配置 CEX API**：
+   - 进入 `Settings` → `CEX API`
+   - 添加 Bybit 或 OKX 的只读 API 密钥
+3. **开始记录交易**：
+   - 进入 `Transactions` 页面
+   - 点击 `Add Transaction`
 
 ### 1️⃣ CEX 资产配置
 
@@ -195,6 +249,9 @@ crypto-bookkeeper/
 │   ├── index.js           # 主服务器
 │   └── defi/              # DeFi 协议集成
 ├── public/                 # 静态资源
+├── screenshots/            # 应用截图
+├── .env.example           # 环境配置示例
+├── install.sh             # 一键安装脚本
 └── package.json           # 项目配置
 ```
 
@@ -210,12 +267,19 @@ crypto-bookkeeper/
 - OKX API
 - 自定义费率
 
+**安全建议**：
+- ✅ 使用**只读权限**的 API 密钥
+- ✅ 在交易所设置 IP 白名单（可选）
+- ✅ 定期轮换 API 密钥
+
 #### AI API
 支持以下提供商（在应用内配置）：
 - **OpenAI** (gpt-3.5-turbo, gpt-4)
 - **DeepSeek** (自定义 Base URL)
 - **Anthropic Claude** (通过代理)
 - 其他 OpenAI 兼容 API
+
+查看 `.env.example` 了解配置详情。
 
 ---
 
@@ -232,6 +296,35 @@ crypto-bookkeeper/
 - 🔒 使用只读权限的 API 密钥
 - 🔒 定期轮换 API 密钥
 - 🔒 不要将备份文件提交到 Git
+
+---
+
+## ❓ 常见问题
+
+### Q: 需要什么环境？
+**A**: Node.js 18+ 和现代浏览器（Chrome/Firefox/Safari/Edge）
+
+### Q: 数据安全吗？
+**A**: 所有数据存储在浏览器本地（localStorage），不会上传到任何服务器。建议定期导出备份。
+
+### Q: 支持哪些交易所？
+**A**: 目前支持 Bybit 和 OKX API 集成。也可以手动添加任何交易所的资产。
+
+### Q: 可以导出数据吗？
+**A**: 可以！在 Settings 页面点击 "Export All Data" 即可导出完整的 JSON 格式备份。
+
+### Q: AI 分析需要付费吗？
+**A**: AI 功能需要 OpenAI 或其他提供商的 API 密钥（需自行购买）。也可以使用免费的"本地分析"模式。
+
+### Q: 后端服务器是必需的吗？
+**A**: 不是。后端服务器仅用于 CEX API 集成。如果只用手动记录功能，只运行前端即可。
+
+### Q: 如何更新到最新版本？
+```bash
+git pull origin main
+npm install
+cd server && npm install
+```
 
 ---
 
