@@ -408,7 +408,7 @@ npm run lint
 ## 📞 联系方式
 
 - **GitHub**: [@Penny777btc](https://github.com/Penny777btc)
-- **Email**: penny777.btc@gmail.com
+- **Twitter**: [@Penny777_eth](https://x.com/Penny777_eth)
 
 ---
 
