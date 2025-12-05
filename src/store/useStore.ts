@@ -1,6 +1,15 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AppState, Coin, CexConfig, Wallet, FiatTransaction, Transaction } from '../types';
+import {
+    demoTransactions,
+    demoManualAssets,
+    demoWallets,
+    demoCexData,
+    demoMonitoredCoins,
+    demoTags
+} from '../data/demoData';
+import { v4 as uuidv4 } from 'uuid';
 
 export const useStore = create<AppState>()(
     persist(
@@ -214,6 +223,39 @@ export const useStore = create<AppState>()(
         }),
         {
             name: 'crypto-bookkeeper-storage',
+            onRehydrateStorage: () => (state) => {
+                // Load demo data only if this is the first launch (no data in localStorage)
+                if (state && state.transactions.length === 0 && state.wallets.length === 0) {
+                    console.log('🎨 Loading demo data for first-time users...');
+
+                    // Set demo transactions
+                    state.transactions = demoTransactions;
+
+                    // Set demo manual assets with IDs and timestamps
+                    state.manualAssets = demoManualAssets.map(asset => ({
+                        ...asset,
+                        id: uuidv4(),
+                        createdAt: Date.now(),
+                        updatedAt: Date.now()
+                    }));
+
+                    // Set demo wallets with IDs
+                    state.wallets = demoWallets.map(wallet => ({
+                        ...wallet,
+                        id: uuidv4()
+                    }));
+
+                    // Set demo CEX data
+                    state.cexData = demoCexData;
+                    state.cexExchangeOrder = ['demo-bybit', 'demo-okx'];
+
+                    // Set demo monitored coins
+                    state.monitoredCoins = demoMonitoredCoins;
+
+                    // Set demo tags
+                    state.tags = demoTags;
+                }
+            }
         }
     )
 );
